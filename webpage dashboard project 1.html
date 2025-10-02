@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dynamic Weather Dashboard</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(-45deg, #1e3c72, #2a5298, #ff512f, #dd2476);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      padding: 25px;
+      border-radius: 16px;
+      width: 400px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #f1f1f1;
+      text-shadow: 0 0 8px rgba(255,255,255,0.3);
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:first-of-type {
+      background: #ff512f;
+      color: white;
+    }
+    button:first-of-type:hover {
+      background: #e64a19;
+    }
+
+    button:last-of-type {
+      background: #2ea043;
+      color: white;
+    }
+    button:last-of-type:hover {
+      background: #238636;
+    }
+
+    .weather {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .weather img {
+      width: 90px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      text-align: center;
+    }
+
+    .details div {
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌍 Dynamic Weather Dashboard</h1>
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Enter city...">
+      <button onclick="getWeather()">Search</button>
+      <button onclick="getLocationWeather()">📍</button>
+    </div>
+
+    <div class="weather" id="weather"></div>
+    <div class="details" id="details"></div>
+  </div>
+
+  <script>
+    const apiKey = "0f7cddeaa545a62babd2bee59f249332";
+
+    async function getWeather() {
+      const city = document.getElementById("cityInput").value.trim();
+      if (!city) return alert("Please enter a city name");
+
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("City not found");
+        const data = await res.json();
+        showWeather(data);
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function showWeather(data) {
+      document.getElementById("weather").innerHTML = `
+        <h2>${data.name}, ${data.sys.country}</h2>
+        <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="icon">
+        <h3>${data.main.temp.toFixed(1)}°C, ${data.weather[0].description}</h3>
+      `;
+
+      document.getElementById("details").innerHTML = `
+        <div>Feels like: ${data.main.feels_like}°C</div>
+        <div>Humidity: ${data.main.humidity}%</div>
+        <div>💨 Wind: ${data.wind.speed} m/s</div>
+        <div>Pressure: ${data.main.pressure} hPa</div>
+      `;
+    }
+
+    // Use my location (geolocation API)
+    function getLocationWeather() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+
+          try {
+            const res = await fetch(url);
+            const data = await res.json();
+            showWeather(data);
+          } catch (err) {
+            alert("Unable to fetch weather for your location");
+          }
+        });
+      } else {
+        alert("Geolocation not supported by your browser.");
+      }
+    }
+  </script>
+</body>
+</html>
